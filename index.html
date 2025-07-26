@@ -1,35 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Camera Capture</title>
+  <title>Camera Capture with Name & Other Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    video, canvas { width: 100%; max-width: 400px; border-radius: 8px; }
-    button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+    video, canvas {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    input, textarea, button {
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
+    }
   </style>
 </head>
 <body>
-  <h2>Take a Live Photo</h2>
+  <h2>Take a Photo & Submit</h2>
+
+  <input type="text" id="name" placeholder="Enter your name" required><br>
+  <textarea id="otherDetails" placeholder="Enter other details..." rows="4"></textarea><br>
+
   <video id="video" autoplay playsinline></video><br>
-  <button id="snap">Take Photo</button>
-  <canvas id="canvas"></canvas>
+  <button id="snap">Take Photo</button><br>
+  <canvas id="canvas"></canvas><br>
+  <button id="upload">Upload to Google Sheets</button>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const button = document.getElementById('snap');
+    const snapBtn = document.getElementById('snap');
+    const uploadBtn = document.getElementById('upload');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(stream => video.srcObject = stream)
-      .catch(err => alert('Camera not supported or blocked'));
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => alert("Camera not supported or permission denied."));
 
-    button.addEventListener('click', () => {
+    // Take photo
+    snapBtn.addEventListener('click', () => {
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     });
+
+    // Upload photo + name + otherDetails
+    uploadBtn.addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim();
+      const otherDetails = document.getElementById('otherDetails').value.trim();
+
+      if (!name) return alert("Please enter your name.");
+
+      const imageData = canvas.toDataURL('image/png');
+
+      fetch('https://script.google.com/macros/s/AKfycbyocUS7b7a3KfReHbAoB7wUg7yjOq4vGhlCEY1OjCGV2c83YwjuAo1iTw8Oc7ZfP42-/exec', {
+        method: 'POST',
+        body: JSON.stringify({ image: imageData, name: name, otherDetails: otherDetails }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.text())
+      .then(msg => alert(msg))
+      .catch(err => alert("Upload failed."));
+    });
   </script>
 </body>
 </html>
+
