@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Camera Capture with Name & Other Details</title>
+  <title>Camera Capture</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     video, canvas {
@@ -50,29 +50,32 @@
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     });
 
-    // Upload photo + name + otherDetails
+    // Upload button event
     uploadBtn.addEventListener('click', () => {
       const name = document.getElementById('name').value.trim();
       const otherDetails = document.getElementById('otherDetails').value.trim();
 
       if (!name) return alert("Please enter your name.");
+      if (canvas.width === 0 || canvas.height === 0) return alert("Please take a photo first.");
 
       const imageData = canvas.toDataURL('image/png');
 
       fetch('https://script.google.com/macros/s/AKfycbxecv_PADgY-hvS9F79PVb_S3tNLFg6XmWvsl5VnejzRrvutasWRiRtclX6jodxAEv6/exec', {
         method: 'POST',
-        body: JSON.stringify({ image: imageData, name: name, other: otherDetails }),
+        body: JSON.stringify({ image: imageData, name: name, otherDetails: otherDetails }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
-      .then(msg => alert(msg))
+      .then(msg => {
+        console.log("Server Response:", msg);
+        alert(msg);
+      })
       .catch(err => {
-        console.error(err);
+        console.error("Fetch Error:", err);
         alert("Upload failed.");
       });
     });
   </script>
 </body>
 </html>
-
 
