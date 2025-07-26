@@ -59,7 +59,7 @@
 
       const imageData = canvas.toDataURL('image/png');
 
-      fetch('https://script.google.com/macros/s/AKfycbxJN6hSuNmbJs0xh4YjFtZNXn3c7jqSCHhABaFQONo/dev', {
+      fetch('https://script.google.com/macros/s/AKfycbxecv_PADgY-hvS9F79PVb_S3tNLFg6XmWvsl5VnejzRrvutasWRiRtclX6jodxAEv6/exec', {
         method: 'POST',
         body: JSON.stringify({ image: imageData, name: name, other: otherDetails }),
         headers: { 'Content-Type': 'application/json' }
