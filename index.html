@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Camera Capture</title>
+  <title>Camera Capture with XHR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     video, canvas {
@@ -60,7 +60,7 @@
       statusP.textContent = "Photo captured. Ready to upload.";
     });
 
-    // Upload button event
+    // Upload button event using XHR
     uploadBtn.addEventListener('click', () => {
       const name = document.getElementById('name').value.trim();
       const otherDetails = document.getElementById('otherDetails').value.trim();
@@ -75,7 +75,11 @@
       }
 
       const imageData = canvas.toDataURL('image/png');
-      const payload = { image: imageData, name: name, otherDetails: otherDetails };
+      const payload = {
+        image: imageData,
+        name: name,
+        otherDetails: otherDetails
+      };
       const payloadString = JSON.stringify(payload);
       console.log("Sending payload:", {
         name: name,
@@ -84,35 +88,37 @@
       });
       statusP.textContent = "Uploading...";
 
-      fetch('https://script.google.com/macros/s/AKfycbwxl17FeCDWEqdgSTgdrbFd0U-6Lhiaa7WMMSuQJSeXpGdJGZilMRZGmXwQTQnh5Aw8/exec', {
-        method: 'POST',
-        body: payloadString,
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': payloadString.length // Dynamically set Content-Length
-        },
-        redirect: 'follow' // Follow redirects
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://script.google.com/macros/s/AKfycbwxl17FeCDWEqdgSTgdrbFd0U-6Lhiaa7WMMSuQJSeXpGdJGZilMRZGmXwQTQnh5Aw8/exec', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Content-Length', payloadString.length); // Set Content-Length dynamically
+
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) { // Request is complete
+          if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            console.log("Server Response:", data);
+            statusP.textContent = data.message;
+            if (data.status === "success") {
+              alert("Upload successful! File URL: " + data.fileUrl);
+            } else {
+              alert("Upload failed: " + data.message);
+            }
+          } else {
+            console.error("XHR Error:", xhr.status, xhr.statusText);
+            statusP.textContent = "Upload failed: HTTP error " + xhr.status;
+            alert("Upload failed: HTTP error " + xhr.status);
+          }
         }
-        return res.json();
-      })
-      .then(data => {
-        console.log("Server Response:", data);
-        statusP.textContent = data.message;
-        if (data.status === "success") {
-          alert("Upload successful! File URL: " + data.fileUrl);
-        } else {
-          alert("Upload failed: " + data.message);
-        }
-      })
-      .catch(err => {
-        console.error("Fetch Error:", err);
-        statusP.textContent = "Upload failed: " + err.message;
-        alert("Upload failed: " + err.message);
-      });
+      };
+
+      xhr.onerror = function () {
+        console.error("XHR Network Error");
+        statusP.textContent = "Upload failed: Network error";
+        alert("Upload failed: Network error");
+      };
+
+      xhr.send(payloadString);
     });
   </script>
 </body>
