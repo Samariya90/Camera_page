@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Camera Capture with Name & Other Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -37,9 +38,9 @@
     const uploadBtn = document.getElementById('upload');
 
     // Start camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
       .then(stream => { video.srcObject = stream; })
-      .catch(err => alert("Camera not supported or permission denied."));
+      .catch(err => alert('Camera not supported or permission denied.'));
 
     // Take photo
     snapBtn.addEventListener('click', () => {
@@ -60,14 +61,16 @@
 
       fetch('https://script.google.com/macros/s/AKfycbyocUS7b7a3KfReHbAoB7wUg7yjOq4vGhlCEY1OjCGV2c83YwjuAo1iTw8Oc7ZfP42-/exec', {
         method: 'POST',
-        body: JSON.stringify({ image: imageData, name: name, otherDetails: otherDetails }),
+        body: JSON.stringify({ image: imageData, name: name, other: otherDetails }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
       .then(msg => alert(msg))
-      .catch(err => alert("Upload failed."));
+      .catch(err => {
+        console.error(err);
+        alert("Upload failed.");
+      });
     });
   </script>
 </body>
 </html>
-
